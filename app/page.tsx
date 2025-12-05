@@ -6,6 +6,8 @@ import ProcessSection from "@/components/ProcessSection";
 import Testimonials from "@/components/Testimonials";
 import AboutSection from "@/components/AboutSection";
 import StatsBanner from "@/components/StatsBanner";
+import FeaturedProperties from "@/components/FeaturedProperties";
+import AnimatedHouses from "@/components/AnimatedHouses";
 
 export default function Home() {
   return (
@@ -14,6 +16,8 @@ export default function Home() {
       <FourPillars />
       <FeaturedListings />
       <ProcessSection />
+      <FeaturedProperties/>
+      <AnimatedHouses/>
       <StatsBanner />
       <Testimonials />
       //<AboutSection />
