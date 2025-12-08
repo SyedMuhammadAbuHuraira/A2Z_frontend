@@ -3,6 +3,6 @@
 4:I[97367,["/A2Z_frontend/_next/static/chunks/ff1a16fafef87110.js","/A2Z_frontend/_next/static/chunks/247eb132b7f7b574.js"],"MetadataBoundary"]
 5:"$Sreact.suspense"
 7:I[27201,["/A2Z_frontend/_next/static/chunks/ff1a16fafef87110.js","/A2Z_frontend/_next/static/chunks/247eb132b7f7b574.js"],"IconMark"]
-0:{"buildId":"W3ARyQfb4vTVDlB36Bor-","rsc":["$","$1","h",{"children":[null,["$","$L2",null,{"children":"$@3"}],["$","div",null,{"hidden":true,"children":["$","$L4",null,{"children":["$","$5",null,{"name":"Next.Metadata","children":"$@6"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"lnzmfl7n3D9umEWS-FRva","rsc":["$","$1","h",{"children":[null,["$","$L2",null,{"children":"$@3"}],["$","div",null,{"hidden":true,"children":["$","$L4",null,{"children":["$","$5",null,{"name":"Next.Metadata","children":"$@6"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"loading":null,"isPartial":false}
 3:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","2",{"name":"theme-color","content":"#4B0082"}]]
 6:[["$","title","0",{"children":"A2Z Group - Real Estate Made Simple"}],["$","meta","1",{"name":"description","content":"From A to Z, we handle all your real estate needs - retail, commercial, investments, and cash offers."}],["$","link","2",{"rel":"icon","href":"/A2Z_frontend/favicon.ico?favicon.0b3bf435.ico","sizes":"256x256","type":"image/x-icon"}],["$","$L7","3",{}]]
