@@ -30,9 +30,11 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const [mobileOpenDropdown, setMobileOpenDropdown] = useState<string | null>(null)
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null)
   const pathname = usePathname()
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20)
@@ -40,11 +42,26 @@ const Header = () => {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (Desktop)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setActiveDropdown(null)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileMenuRef.current && 
+          !mobileMenuRef.current.contains(event.target as Node) &&
+          !(event.target as Element).closest('button[aria-label="Menu"]')) {
+        setIsMenuOpen(false)
+        setMobileOpenDropdown(null)
       }
     }
 
@@ -118,7 +135,7 @@ const Header = () => {
     { name: "Contact", href: "/contact", icon: <MessageCircle className="w-4 h-4" /> },
   ]
 
-  // Handle mouse enter with delay
+  // Desktop hover handlers
   const handleMouseEnter = (name: string) => {
     if (dropdownTimeout) {
       clearTimeout(dropdownTimeout)
@@ -127,15 +144,13 @@ const Header = () => {
     setActiveDropdown(name)
   }
 
-  // Handle mouse leave with delay
   const handleMouseLeave = () => {
     const timeout = setTimeout(() => {
       setActiveDropdown(null)
-    }, 150) // 150ms delay before closing
+    }, 150)
     setDropdownTimeout(timeout)
   }
 
-  // Handle dropdown mouse enter (prevent close when hovering dropdown)
   const handleDropdownMouseEnter = () => {
     if (dropdownTimeout) {
       clearTimeout(dropdownTimeout)
@@ -143,7 +158,6 @@ const Header = () => {
     }
   }
 
-  // Handle dropdown mouse leave
   const handleDropdownMouseLeave = () => {
     const timeout = setTimeout(() => {
       setActiveDropdown(null)
@@ -151,10 +165,21 @@ const Header = () => {
     setDropdownTimeout(timeout)
   }
 
-  // Handle link click
+  // Mobile click handlers
+  const handleMobileDropdownClick = (name: string) => {
+    if (mobileOpenDropdown === name) {
+      // If clicking the same dropdown, close it
+      setMobileOpenDropdown(null)
+    } else {
+      // If clicking different dropdown, open it and close others
+      setMobileOpenDropdown(name)
+    }
+  }
+
   const handleLinkClick = () => {
     setIsMenuOpen(false)
     setActiveDropdown(null)
+    setMobileOpenDropdown(null)
     if (dropdownTimeout) {
       clearTimeout(dropdownTimeout)
       setDropdownTimeout(null)
@@ -178,7 +203,10 @@ const Header = () => {
             <Link
               href="/"
               className="flex items-center gap-3 group"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                setIsMenuOpen(false)
+                setMobileOpenDropdown(null)
+              }}
             >
               <div className="
                 w-12 h-12 rounded-xl 
@@ -341,7 +369,13 @@ const Header = () => {
                 transition-colors duration-200
                 group
               "
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => {
+                setIsMenuOpen(!isMenuOpen)
+                if (isMenuOpen) {
+                  setMobileOpenDropdown(null)
+                }
+              }}
+              aria-label="Menu"
             >
               {isMenuOpen ? (
                 <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -357,81 +391,124 @@ const Header = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
+            ref={mobileMenuRef}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             className="
               lg:hidden fixed inset-x-0 top-16
               bg-white border-b border-gray-100
-              shadow-lg z-40
+              shadow-lg z-40 max-h-[80vh] overflow-y-auto
             "
           >
             <div className="p-4 space-y-1">
               {navLinks.map((link) => (
                 <div key={link.name} className="space-y-1">
-                  <Link
-                    href={link.href}
-                    onClick={handleLinkClick}
-                    className="
-                      flex items-center justify-between
-                      py-3 px-4 rounded-lg
-                      text-gray-700 font-medium
-                      hover:bg-gray-50
-                      transition-colors duration-150
-                      group/mobile
-                    "
-                  >
-                    <div className="flex items-center gap-3">
+                  {/* Main Mobile Link - Clickable for dropdown toggle */}
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={link.href}
+                      onClick={() => {
+                        if (!link.dropdown) {
+                          handleLinkClick()
+                        }
+                      }}
+                      className="
+                        flex items-center gap-3
+                        py-3 px-4 rounded-lg
+                        text-gray-700 font-medium
+                        hover:bg-gray-50
+                        transition-colors duration-150
+                        flex-grow
+                        group/mobile
+                      "
+                    >
                       <div className="text-gray-500 group-hover/mobile:text-blue-600 transition-colors">
                         {link.icon}
                       </div>
                       <span className="group-hover/mobile:text-gray-900 transition-colors">
                         {link.name}
                       </span>
-                    </div>
+                    </Link>
+                    
+                    {/* Dropdown Toggle Button (only for dropdown items) */}
                     {link.dropdown && (
-                      <ChevronDown className="w-4 h-4 text-gray-400 group-hover/mobile:text-gray-600 transition-colors" />
+                      <button
+                        onClick={() => handleMobileDropdownClick(link.name)}
+                        className="
+                          w-12 h-12 flex items-center justify-center
+                          text-gray-400 hover:text-gray-600
+                          transition-colors duration-150
+                          rounded-lg hover:bg-gray-50
+                        "
+                        aria-label={`Toggle ${link.name} dropdown`}
+                      >
+                        <ChevronDown 
+                          className={`w-4 h-4 transition-transform duration-300 ${
+                            mobileOpenDropdown === link.name ? "rotate-180" : ""
+                          }`} 
+                        />
+                      </button>
                     )}
-                  </Link>
+                  </div>
                   
-                  {/* Mobile Dropdown */}
-                  {link.dropdown && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="ml-4 pl-6 border-l-2 border-gray-200 overflow-hidden"
-                    >
-                      <div className="px-4 py-2">
-                        <h4 className="text-sm font-medium text-gray-900 mb-2">
-                          {link.dropdown[0].title}
-                        </h4>
-                        {link.dropdown[0].items.map((item) => (
+                  {/* Mobile Dropdown Content */}
+                  <AnimatePresence>
+                    {link.dropdown && mobileOpenDropdown === link.name && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="ml-4 pl-6 border-l-2 border-gray-200 overflow-hidden"
+                      >
+                        <div className="px-4 py-2">
+                          <h4 className="text-sm font-medium text-gray-900 mb-2">
+                            {link.dropdown[0].title}
+                          </h4>
+                          <div className="space-y-1">
+                            {link.dropdown[0].items.map((item) => (
+                              <Link
+                                key={item.name}
+                                href={item.href}
+                                onClick={handleLinkClick}
+                                className="
+                                  block py-2.5 px-3 rounded
+                                  text-sm text-gray-600
+                                  hover:bg-gray-50 hover:text-gray-900
+                                  transition-colors duration-150
+                                  group/item-mobile
+                                "
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover/item-mobile:scale-125 transition-transform" />
+                                  {item.name}
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                          {/* View All Link for Mobile */}
                           <Link
-                            key={item.name}
-                            href={item.href}
+                            href={link.href}
                             onClick={handleLinkClick}
                             className="
-                              block py-2.5 px-3 rounded
-                              text-sm text-gray-600
-                              hover:bg-gray-50 hover:text-gray-900
+                              block mt-3 py-2 px-3 rounded
+                              text-sm text-blue-600 font-medium
+                              hover:bg-blue-50
                               transition-colors duration-150
-                              group/item-mobile
+                              text-center border border-blue-100
                             "
                           >
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover/item-mobile:scale-125 transition-transform" />
-                              {item.name}
-                            </div>
+                            View all {link.name} services
                           </Link>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ))}
 
-              {/* Mobile CTA */}
+              {/* Mobile CTA Section */}
               <div className="pt-4 mt-4 border-t border-gray-100">
                 <Link
                   href="/home-value"
